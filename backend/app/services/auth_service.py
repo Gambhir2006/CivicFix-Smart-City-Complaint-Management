@@ -1,19 +1,25 @@
 from datetime import datetime, timedelta
 from typing import Optional
 from jose import JWTError, jwt
-from pwdlib import PasswordHash
-from pwdlib.hashers import argon2
+from argon2 import PasswordHasher
 from app.config import settings
 
-pwd_context = PasswordHash((argon2,))
+pwd_hasher = PasswordHasher(
+    time_cost=3,
+    memory_cost=65536,
+    parallelism=4
+)
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    try:
+        return pwd_hasher.verify(hashed_password, plain_password)
+    except:
+        return False
 
 
 def get_password_hash(password: str) -> str:
-    return pwd_context.hash(password)
+    return pwd_hasher.hash(password)
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
